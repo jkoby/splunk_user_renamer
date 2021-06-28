@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-#
+##############################################################################################################
+# Contact: Will Rivendell 
+# 	E1: wrivendell@splunk.com
+# 	E2: contact@willrivendell.com
 ##############################################################################################################
 
 ### IMPORTS ###########################################
@@ -7,7 +10,7 @@ import os, time, datetime, csv, pandas, sys
 
 from pathlib import Path
 
-from . import wr_common as wrc
+from wr_common import normalizePathOS
 
 ### FUNCTIONS ###########################################
 
@@ -91,7 +94,7 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 
 class LogFile():
 	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_level=1, log_retention_days=7, roll_size_bytes=50000000, max_files_to_keep=0,  prefix_date=True, debug=False):
-		log_folder = wrc.normalizePathOS(str(log_folder))
+		log_folder = normalizePathOS(str(log_folder))
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to
 		self.log_level = log_level
@@ -156,7 +159,7 @@ class LogFile():
 class CSVFile():
 	# this is the startup script, init?
 	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, prefix_date=True, debug=False):
-		log_folder = wrc.normalizePathOS(str(log_folder))
+		log_folder = normalizePathOS(str(log_folder))
 		self.debug = debug
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to

@@ -60,12 +60,12 @@ def Arguments():
 	parser.add_argument("-sph", "--splunk_home", nargs="?", default="/opt/splunk/", required=False, help="Full path to Splunk's install dir.")
 	parser.add_argument("-ll", "--log_level", type=checkPositive, nargs="?", default=1, required=False, help="1-3, 1 being less, 3 being most")
 	parser.add_argument("-fsl", "--file_search_list", nargs="*", default=[], required=False, help="List of values the filename must have in order to search in, separated by commas, i.e: 'server.conf,prop' ")
-	parser.add_argument("-fslt", "--file_search_list_type", type=str2bool, nargs="?", const=True, default=False,  required=False, help="True for each item in file_search_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'container' means '*container*'. Do NOT use *, they are implied. ")
+	parser.add_argument("-fslt", "--file_search_list_type", type=str2bool, nargs="?", const=True, default=False, required=False, help="True for each item in file_search_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'container' means '*container*'. Do NOT use *, they are implied. ")
 	parser.add_argument("-figl", "--file_ignore_list", nargs="*", default=[], required=False, help="List of values the filename has to ignore AFTER search in list has finished, separated by commas, i.e: 'server1.conf,props_' ")
-	parser.add_argument("-figlt", "--file_ignore_list_type", type=str2bool, nargs="?", const=True, default=False,  required=False, help="True for each item in file_ignore_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'frozenda' means '*frozenda*'. Do NOT use *, they are implied. ")
+	parser.add_argument("-figlt", "--file_ignore_list_type", type=str2bool, nargs="?", const=True, default=False, required=False, help="True for each item in file_ignore_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'frozenda' means '*frozenda*'. Do NOT use *, they are implied. ")
 	parser.add_argument("-fn", "--file_names", nargs="*", default=['local.meta'], required=False, help="List of file names to search in, separated by commas. i.e: 'local.meta'. User directories are handled by default, this is for file contents. ")
-	parser.add_argument("-dm", "--debug_modules", type=str2bool, nargs="?", const=True, default=False,  required=False, help="Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.")
-	parser.add_argument("-tr", "--test_run", type=str2bool, nargs="?", const=True, default=False,  required=False, help="If True, nothing will be modified, only reports what WOULD be modified. Logging is normal.")
+	parser.add_argument("-dm", "--debug_modules", type=str2bool, nargs="?", const=True, default=False, required=False, help="Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.")
+	parser.add_argument("-tr", "--test_run", type=str2bool, nargs="?", const=True, default=False, required=False, help="If True, nothing will be modified, only reports what WOULD be modified. Logging is normal.")
 
 ############## RUNTIME
 Arguments()
