@@ -106,7 +106,7 @@ else:
 				df = df.iloc[1:] # remove the header
 			df = df.iloc[:, arguments.args.csv_old_uname_col:arguments.args.csv_new_uname_col] # we only want the two columns we care about (old and new unames)
 			csv_df_list.append(df)
-		df_full = pandas.concat(df_full, axis=0, ignore_index=True)
+		df_full = pandas.concat(csv_df_list, axis=0, ignore_index=True)
 		user_rename_dict = df_full.set_index(0)[1].to_dict()
 	except Exception as ex:
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): CSV Could not be read or processed. Exiting. -")
