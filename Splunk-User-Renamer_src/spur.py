@@ -83,8 +83,8 @@ if not csv_path:
 		uname_suffix = str(arguments.args.uname_suffix)
 		prefix_or_suffix_specified = True
 	if not prefix_or_suffix_specified:
-		print("- SPUR(" + str(sys._getframe().f_lineno) +"): No CSV specified and no prefix or suffix specified, therefore nothing to do. Exiting. -")
-		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): No CSV specified and no prefix or suffix specified, therefore nothing to do. Exiting."])
+		print("- SPUR(" + str(sys._getframe().f_lineno) +"): No CSV folder specified and no prefix or suffix specified, therefore nothing to do. Exiting. -")
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): No CSV folder specified and no prefix or suffix specified, therefore nothing to do. Exiting."])
 		spur_op_timer.stop()
 		sys.exit()
 	else:
@@ -93,14 +93,21 @@ if not csv_path:
 		for uname in user_folders_list:
 			user_rename_dict[str(uname)]=uname_prefix + str(uname) + uname_suffix
 else:
-	print("- SPUR(" + str(sys._getframe().f_lineno) +"): CSV Specified, attempting to read. -")
-	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): CSV Specified, attempting to read."])
+	print("- SPUR(" + str(sys._getframe().f_lineno) +"): CSV Folder Specified, attempting to read. -")
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): CSV Folder Specified, attempting to read."])
 	try:
-		df = pandas.read_csv(csv_path, header=None, engine='python')
-		if arguments.args.csv_header:
-			df = df.iloc[1:] # remove the header
-		df = df.iloc[:, arguments.args.csv_old_uname_col:arguments.args.csv_new_uname_col] # we only want the two columns we care about (old and new unames)
-		user_rename_dict = df.set_index(0)[1].to_dict()
+		csv_folder_filenames = os.listdir(csv_path) # main - used later
+		if not csv_folder_filenames:
+			raise
+		csv_df_list = []
+		for csv in csv_folder_filenames:
+			df = pandas.read_csv(csv_path + csv, header=None, engine='python')
+			if arguments.args.csv_header:
+				df = df.iloc[1:] # remove the header
+			df = df.iloc[:, arguments.args.csv_old_uname_col:arguments.args.csv_new_uname_col] # we only want the two columns we care about (old and new unames)
+			csv_df_list.append(df)
+		df_full = pandas.concat(df_full, axis=0, ignore_index=True)
+		user_rename_dict = df_full.set_index(0)[1].to_dict()
 	except Exception as ex:
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): CSV Could not be read or processed. Exiting. -")
 		print(ex)
