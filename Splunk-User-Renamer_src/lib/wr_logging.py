@@ -10,9 +10,24 @@ import os, time, datetime, csv, pandas, sys
 
 from pathlib import Path
 
-from wr_common import normalizePathOS
-
 ### FUNCTIONS ###########################################
+# pass any path in here, windows or linux and normalize it to whatever OS the script is running on
+def normalizePathOS(path:str) -> str:
+	'''
+	Formats path string to be windows or linux depending on OS
+	Always adds the trailing slash!!
+	Returns formatted path as a string
+	'''
+	if 'win' in sys.platform:
+		path.replace('/', '\\')
+		if not path.endswith('\\'):
+			path = path + '\\'
+	else:
+		path.replace('\\', '/')
+		if not path.endswith('/'):
+			path = path + '/'
+	path.replace('//','/').replace('\\\\','\\')
+	return(path)
 
 def verifyLogFileExist(log_file):
 	if os.path.exists(log_file):

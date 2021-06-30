@@ -1,8 +1,12 @@
 #!/bin/bash
-
+##############################################################################################################
+# Contact: Will Rivendell 
+# 	E1: wrivendell@splunk.com
+# 	E2: contact@willrivendell.com
+##############################################################################################################
 ### Python3
 python3 spur.py \
-    -buf './backups' \
+    -buf './backups/' \
     -csv './csvs/' \
     -csv_h True \
     -csv_old_col 0 \
@@ -29,6 +33,6 @@ python3 spur.py \
 # -fslt = --file_search_list_type | True for each item in file_search_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'container' means '*container*'. Do NOT use *, they are implied. 
 # -figl = --file_ignore_list | List of values the filename has to ignore AFTER search in list has finished, separated by commas, i.e: 'server1.conf,props_' 
 # -figlt = --file_ignore_list_type | True for each item in file_ignore_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'frozenda' means '*frozenda*'. Do NOT use *, they are implied. 
-# -fn = --file_name | List of file names to search in, separated by commas. i.e: 'local.meta'. User directories are handled by default, this is for file contents. 
+# -fn = --file_names | List of file names to search in, separated by commas. i.e: 'local.meta, test_file.conf'. User directories are handled by default, this is for file contents. 
 # -dm = --debug_modules | Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.
 # -tr = --test_run | If True, nothing will be modified, only reports what WOULD be modified. Logging is normal.

@@ -89,6 +89,13 @@ class timer:
 
 ### FUNCTIONS ###########################################
 
+# clear console on OS
+def clearConsole():
+	if 'win' in sys.platform:
+		os.system('cls')
+	else:
+		os.system('clear')
+
 # pass any path in here, windows or linux and normalize it to whatever OS the script is running on
 def normalizePathOS(path:str) -> str:
 	'''
