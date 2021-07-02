@@ -199,10 +199,12 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 			for file in files:
 				if file == file_name:
 					file_full = os.path.join(root, file)
-					if not isInList(file_full, file_search_list, equals_or_contains=file_search_list_type, string_in_list_or_items_in_list_in_string=False):
-						continue
-					if isInList(file_full, file_ignore_list, equals_or_contains=file_ignore_list_type, string_in_list_or_items_in_list_in_string=False):
-						continue
+					if file_search_list:
+						if not isInList(file_full, file_search_list, equals_or_contains=file_search_list_type, string_in_list_or_items_in_list_in_string=False):
+							continue
+					if file_ignore_list:
+						if isInList(file_full, file_ignore_list, equals_or_contains=file_ignore_list_type, string_in_list_or_items_in_list_in_string=False):
+							continue
 					found_paths_list.append( file_full )
 					found_one = True
 					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + file_name + " in file."] )
@@ -229,19 +231,23 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 	# then write out the file again with the replaced lines0
 	changes_log = {}
 	new_file_list = []
-	file_name = normalizePathOS(file_name)
+	file_name = normalizePathOS(file_name)[:-1] #normalize path for OS redundancy check and remove trailing slash
 	try:
-		print("- WRC(" + str(sys._getframe().f_lineno) + "): Attempting to open: " + file_name + " -")
+		if test_run:
+			print("- WRC(" + str(sys._getframe().f_lineno) + "): ########################################## -")
+			print("- WRC(" + str(sys._getframe().f_lineno) + "): THIS IS A TEST RUN - NO RENAMES WILL OCCUR -")
+			print("- WRC(" + str(sys._getframe().f_lineno) + "): ########################################## -")
+		print("\n- WRC(" + str(sys._getframe().f_lineno) + "): Attempting to open: " + file_name + " -")
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to open: " + file_name] )
 		with open(file_name) as f: # open file and read each line
 			for line in f:
 				new_line = line # set new_line to original line, if no replacement needed, we keep original line
 				for k,v in replace_dict.items():
-					if k in line:
+					if str(k).lower() in line.lower():
 						if verbose_prints:
-							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line + " -")
+							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line.strip() + " -")
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replacing: " + k + " with " + v + " -\n")
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line], 3)
+						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line.strip()], 3)
 						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing: " + k + " with " + v], 3)
 						new_line = line.replace(str(k),str(v)) # add replacement line to new_line var
 						changes_log[line]=new_line
@@ -249,67 +255,74 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 				new_file_list.append(new_line) # add line to ongoing list of file lines to write back later
 		f.close()
 
-		# create backup
-		if not test_run: # only write the new file if and crate a backup if NOT a test!
-			if create_backup:
-				if backup_to:
-					try:
-						backup_to = normalizePathOS(backup_to)[-1]
-						os.makedirs(str(backup_to), exist_ok=True)
-					except Exception as ex:
-						print("- WRC(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead. -")
-						print(ex)						
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead."] )
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): " + str(ex)] )
-						backup_to = False
-				if not backup_to:
-					suffix_num = 1
-					if file_name.endswith('/') or file_name.endswith('\\'):
-						file_name = file_name[-1]
-					suffix = '_rename_backup_' + str(suffix_num)
-					while os.path.exists(file_name + suffix):
-						suffix_num = suffix_num + 1
+		if changes_log:
+			# create backup
+			if not test_run: # only write the new file if and crate a backup if NOT a test!
+				if create_backup:
+					if backup_to:
+						try:
+							backup_to = normalizePathOS(backup_to)[-1]
+							os.makedirs(str(backup_to), exist_ok=True)
+						except Exception as ex:
+							print("- WRC(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead. -")
+							print(ex)						
+							log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead."] )
+							log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): " + str(ex)] )
+							backup_to = False
+					if not backup_to:
+						suffix_num = 1
+						if file_name.endswith('/') or file_name.endswith('\\'):
+							file_name = file_name[-1]
 						suffix = '_rename_backup_' + str(suffix_num)
-					shutil.copytree(file_name, file_name + suffix)
-				else:
-					suffix_num = 1
-					final_backup_path = backup_to + file_name
-					while os.path.exists(final_backup_path):
-						final_backup_path = final_backup_path + '_rename_backup_' + str(suffix_num)
-					shutil.copytree(file_name, final_backup_path) # keeps dir structure
+						while os.path.exists(file_name + suffix):
+							suffix_num = suffix_num + 1
+							suffix = '_rename_backup_' + str(suffix_num)
+						shutil.copytree(file_name, file_name + suffix)
+					else:
+						suffix_num = 1
+						final_backup_path = backup_to + file_name
+						while os.path.exists(final_backup_path):
+							final_backup_path = final_backup_path + '_rename_backup_' + str(suffix_num)
+						shutil.copytree(file_name, final_backup_path) # keeps dir structure
 
-			# write out new file
-			print("- WRC(" + str(sys._getframe().f_lineno) + "): Writing out new file: " + file_name + " -")
-			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Writing out new file: " + file_name] )
-			with open(file_name, 'w') as f:
-				for i in new_file_list:
-					f.write("%s\n" % i)
-			f.close()
-			print("- WRC(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name + " -")
-			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name] )
+				# write out new file
+				print("- WRC(" + str(sys._getframe().f_lineno) + "): Writing out new file: " + file_name + " -")
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Writing out new file: " + file_name] )
+				with open(file_name, 'w') as f:
+					for i in new_file_list:
+						f.write("%s\n" % i)
+				f.close()
+				print("- WRC(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name + " -")
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name] )
 
-		# print output of what was done
-		if test_run:
-			action = "would be"
+			# print output of what was done
+			if test_run:
+				action = "would be"
+			else:
+				action = "are"
+			if verbose_prints:
+				if changes_log:
+					print("\n- WRC(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed: -")
+			if changes_log:
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed:"], 3)
+			for k, v in changes_log.items():
+				if verbose_prints:
+					print("- WRC(" + str(sys._getframe().f_lineno) + "):	Original line: " + str(k).strip() + " -")
+					print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replaced line: " + v + " -\n")
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Original line: " + k], 3)
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Replaced line: \n" + v], 3)
+
+			if verbose_prints:
+				print("- WRC(" + str(sys._getframe().f_lineno) + "): The new line(s) in the file in its entirety "+ action +": -")
+			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The new line(s) in the file in its entirety "+ action +": "], 3)
+			for i in new_file_list:
+				if verbose_prints:
+					print("- WRC(" + str(sys._getframe().f_lineno) + "):	" + str(i).strip() )
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  " + str(i).strip()], 3)
 		else:
-			action = "are"
-		if verbose_prints:
-			print("- WRC(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed: -")
-		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed:"], 3)
-		for k,v in changes_log:
-			if verbose_prints:
-				print("- WRC(" + str(sys._getframe().f_lineno) + "):	Original line: " + k + " -")
-				print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replaced line: " + v + " -\n")
-			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Original line: " + k], 3)
-			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Replaced line: \n" + v], 3)
-
-		if verbose_prints:
-			print("- WRC(" + str(sys._getframe().f_lineno) + "): The new line in the file in its entirety "+ action +": -")
-		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The new line in the file in its entirety "+ action +": "], 3)
-		for i in new_file_list:
-			if verbose_prints:
-				print("- WRC(" + str(sys._getframe().f_lineno) + "):	" + (i) )
-			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  " + (i)], 3)
+			print("- WRC(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n")
+			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n"])
+			return(changes_log)
 		
 	except Exception as ex:
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check permissions? -")
@@ -328,7 +341,9 @@ def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=
 	new = normalizePathOS(new)
 	try:
 		if test_run:
+			print("- WRC(" + str(sys._getframe().f_lineno) + "): ########################################## -")
 			print("- WRC(" + str(sys._getframe().f_lineno) + "): THIS IS A TEST RUN - NO RENAMES WILL OCCUR -")
+			print("- WRC(" + str(sys._getframe().f_lineno) + "): ########################################## -")
 			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): THIS IS A TEST RUN - NO RENAMES WILL OCCUR"] )
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): Attempting to rename: " + orig + " TO " + new + " -")
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to rename: " + orig + " TO " + new] )
