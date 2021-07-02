@@ -104,7 +104,7 @@ else:
 			df = pandas.read_csv(csv_path + csv, header=None, engine='python')
 			if arguments.args.csv_header:
 				df = df.iloc[1:] # remove the header
-			df = df[[arguments.args.csv_old_uname_col:arguments.args.csv_new_uname_col]] # we only want the two columns we care about (old and new unames)
+			df = df[[int(arguments.args.csv_old_uname_col),int(arguments.args.csv_new_uname_col)]] # we only want the two columns we care about (old and new unames)
 			csv_df_list.append(df)
 		df_full = pandas.concat(csv_df_list, axis=0, ignore_index=True)
 		user_rename_dict = df_full.set_index(0)[1].to_dict()
