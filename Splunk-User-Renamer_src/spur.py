@@ -101,7 +101,7 @@ else:
 			raise
 		csv_df_list = []
 		for csv in csv_folder_filenames:
-			df = pandas.read_csv(csv_path + csv, header=None, engine='python')
+			df = pandas.read_csv(csv_path + csv, header=None, engine='python', na_values='wr_spur_empty2021')
 			if arguments.args.csv_header:
 				df = df.iloc[1:] # remove the header
 			df = df[[int(arguments.args.csv_old_uname_col),int(arguments.args.csv_new_uname_col)]] # we only want the two columns we care about (old and new unames)
