@@ -107,7 +107,7 @@ else:
 			df = df[[int(arguments.args.csv_old_uname_col),int(arguments.args.csv_new_uname_col)]] # we only want the two columns we care about (old and new unames)
 			csv_df_list.append(df)
 		df_full = pandas.concat(csv_df_list, axis=0, ignore_index=True)
-		user_rename_dict = df_full.set_index(0)[1].to_dict()
+		user_rename_dict = df_full.set_index(arguments.args.csv_old_uname_col)[int(arguments.args.csv_new_uname_col)].to_dict()
 		print("- SPUR(" + str(sys._getframe().f_lineno) +"): Done. -")
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Done."])		
 	except Exception as ex:
