@@ -140,7 +140,7 @@ for u in user_folders_list:
 		if not str(u) == str(k): # if uname doesnt match new uname
 			if orig_u_email_format: # but original was an email address
 				if not re.search(email_regex, str(k)): # provided original was not an email address
-					new_k = k + '@' + u.split('@')[1] # add the email domain from the found splunk user to the provided original username and see if it matches now
+					new_k = str(k) + '@' + str(u.split('@')[1]) # add the email domain from the found splunk user to the provided original username and see if it matches now
 				if str(u) == str(k): # if they match now, add the modified uname to the list instead
 					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Original: " + str(u) + " but non-email username: " + str(k) + " specified for replacement. Using email version.")
 					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Original: " + str(u) + " but non-email username: " + str(k) + " specified for replacement. Using email version."])
