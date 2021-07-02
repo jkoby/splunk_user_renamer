@@ -46,7 +46,7 @@ for fn in master_file_list:
 		for i in found[1]: # if full paths found add to master list
 			master_file_path_list.append(i)
 
-user_folders_list = os.listdir(splunk_user_folders_path) # main - used later
+user_folders_list = next(os.walk(splunk_user_folders_path))[1] # main - used later
 user_rename_dict = {} # main - used later
 user_folder_failed_renames = []
 email_regex = '^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]{2,}$' # used to check if usernames in csv match usernames in splunk when one may be email address and one may not be
@@ -104,10 +104,12 @@ else:
 			df = pandas.read_csv(csv_path + csv, header=None, engine='python')
 			if arguments.args.csv_header:
 				df = df.iloc[1:] # remove the header
-			df = df.iloc[:, arguments.args.csv_old_uname_col:arguments.args.csv_new_uname_col] # we only want the two columns we care about (old and new unames)
+			df = df.iloc[:, arguments.args.csv_old_uname_col:arguments.args.csv_new_uname_col + 1] # we only want the two columns we care about (old and new unames)
 			csv_df_list.append(df)
 		df_full = pandas.concat(csv_df_list, axis=0, ignore_index=True)
 		user_rename_dict = df_full.set_index(0)[1].to_dict()
+		print("- SPUR(" + str(sys._getframe().f_lineno) +"): Done. -")
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Done."])		
 	except Exception as ex:
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): CSV Could not be read or processed. Exiting. -")
 		print(ex)
@@ -134,7 +136,7 @@ for u in user_folders_list:
 	orig_u_email_format = False
 	if(re.search(email_regex, str(u))):
 		orig_u_email_format = True
-	for k, v in user_rename_dict:
+	for k, v in user_rename_dict.items():
 		if not str(u) == str(k): # if uname doesnt match new uname
 			if orig_u_email_format: # but original was an email address
 				if not re.search(email_regex, str(k)): # provided original was not an email address
@@ -152,9 +154,21 @@ for u in user_folders_list:
 					user_rename_dict[new_k] = user_rename_dict.pop(k)
 
 # start renaming user folders
+print("- SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders. -\n")
+log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders.\n"])
 for u in user_folders_list:
-	for k, v in user_rename_dict:
+	for k, v in user_rename_dict.items():
 		if str(u) == str(k):
+			if os.path.exists(splunk_user_folders_path + str(v)):
+				try:
+					print("- SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Deleting it first: " + splunk_user_folders_path + str(v))
+					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Deleting it first: " + splunk_user_folders_path + str(v)])
+					os.remove(splunk_user_folders_path + str(v))
+				except Exception as ex:
+					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue deleting: " + splunk_user_folders_path + str(v))
+					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue deleting: " + splunk_user_folders_path + str(v)])
+					spur_op_timer.stop()
+					sys.exit()
 			if wrc.renameFolder(splunk_user_folders_path + str(k), splunk_user_folders_path + str(v), create_backup=True, backup_to=arguments.args.backup_folder, test_run=arguments.args.test_run):
 				print("- SPUR(" + str(sys._getframe().f_lineno) +"): Original: " + splunk_user_folders_path + str(k))
 				print("- SPUR(" + str(sys._getframe().f_lineno) +"): Renamed To: " + splunk_user_folders_path + str(v))
@@ -162,20 +176,22 @@ for u in user_folders_list:
 				log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Renamed To: " + splunk_user_folders_path + str(v)])
 			else:
 				user_folder_failed_renames.append(splunk_user_folders_path + str(k))
-print("- SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -\n")
+print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -\n")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder])
-print("- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders failed to backup: -" )
-for i in user_folder_failed_renames:
-	print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + i + " -" )
-	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + i])
+if user_folder_failed_renames:
+	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders failed to backup: -" )
+	for i in user_folder_failed_renames:
+		print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + i + " -" )
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + i])
 
 # start replacing usernames in files
 # pre-flight reporting
-print("- SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames. -")
+print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames. -")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames."])
 for f in master_file_path_list:
-	print("- SPUR(" + str(sys._getframe().f_lineno) +"):	- " + f + "-")
+	print("- SPUR(" + str(sys._getframe().f_lineno) +"):  - " + f + " -")
 	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): 	- " + f])
+for f in master_file_path_list:
 	wrc.replaceTextInFile(f, user_rename_dict, create_backup=True, backup_to=arguments.args.backup_folder, test_run=arguments.args.test_run, verbose_prints=True)
 print("- SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -")
 print("- SPUR(" + str(sys._getframe().f_lineno) +"): Check 'wrc' log for details. -\n")
