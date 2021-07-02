@@ -29,10 +29,10 @@
 # -us = --uname_suffix | If CSV is not being used, you may mass rename users to have this suffix. If CSV is specified, this is ignored.
 # -sph = --splunk_home | Full path to Splunk's install dir.
 # -ll = --log_level | 1-3, 1 being less, 3 being most
-# -fsl = --file_search_list | List of values the filename must have in order to search in, separated by commas, i.e: 'server.conf,prop' 
+# -fsl = --file_search_list | List of values the filename must have in order to search in, separated by spaces, i.e: 'server.conf' 'prop' 
 # -fslt = --file_search_list_type | True for each item in file_search_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'container' means '*container*'. Do NOT use *, they are implied. 
-# -figl = --file_ignore_list | List of values the filename has to ignore AFTER search in list has finished, separated by commas, i.e: 'server1.conf,props_' 
+# -figl = --file_ignore_list | List of values the filename has to ignore AFTER search in list has finished, separated by spaces, i.e: 'server1.conf' 'props_' 
 # -figlt = --file_ignore_list_type | True for each item in file_ignore_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'frozenda' means '*frozenda*'. Do NOT use *, they are implied. 
-# -fn = --file_names | List of file names to search in, separated by commas. i.e: 'local.meta, test_file.conf'. User directories are handled by default, this is for file contents. 
+# -fn = --file_names | List of file names to search in, separated by spaces. i.e: 'local.meta' 'test_file.conf'. User directories are handled by default, this is for file contents. 
 # -dm = --debug_modules | Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.
 # -tr = --test_run | If True, nothing will be modified, only reports what WOULD be modified. Logging is normal.
