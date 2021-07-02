@@ -216,7 +216,7 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 	else:
 		return(False, tuple())
 
-def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', test_run=False, verbose_prints=True) -> dict:
+def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', case_senseitive=False, test_run=False, verbose_prints=True) -> dict:
 	'''
 	file_name should be full path to the file
 	This will read the file, make the changes and write the full file out
@@ -243,7 +243,11 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 			for line in f:
 				new_line = line # set new_line to original line, if no replacement needed, we keep original line
 				for k,v in replace_dict.items():
-					if str(k).lower() in line.lower():
+					if not case_senseitive:
+						k = str(k).lower()
+						v = str(v).lower()
+						line = line.lower()
+					if str(k) in line:
 						if verbose_prints:
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line.strip() + " -")
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replacing: " + k + " with " + v + " -\n")
@@ -347,7 +351,7 @@ def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=
 			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): THIS IS A TEST RUN - NO RENAMES WILL OCCUR"] )
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): Attempting to rename: " + orig + " TO " + new + " -")
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to rename: " + orig + " TO " + new] )
-		
+
 		if not test_run: # do the rename if NOT a test run
 			if create_backup:
 				if backup_to:
