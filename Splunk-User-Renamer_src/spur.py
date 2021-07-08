@@ -217,8 +217,8 @@ if folder_changes_dict:
 	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The Following FOLDER Changes were detected: ")
 	log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): The Following FOLDER Changes were detected:"])
 	for k, v in folder_changes_dict.items():
-		print("- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip())
-		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip()])
+		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip())
+		log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip()])
 		print("- SPUR(" + str(sys._getframe().f_lineno) +"): - New Folder: " + str(v).strip())
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - New Folder: " + str(v).strip()])
 
