@@ -14,6 +14,8 @@ python3 spur.py \
     -sph '/opt/splunk/' \
     -ll 3 \
     -fn 'local.meta' \
+    -figl '/system/default/'
+    -figlt False
     -dm True \
     -tr True
 
