@@ -188,7 +188,7 @@ if user_folder_failed_renames:
 # pre-flight reporting
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames. -")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames."])
-changes_dict = [] # store all file changes here file_name, {k orig : v new}
+changes_dict = {} # store all file changes here file_name, {k orig : v new}
 for f in master_file_path_list:
 	print("- SPUR(" + str(sys._getframe().f_lineno) +"):  - " + f + " -")
 	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): 	- " + f])
