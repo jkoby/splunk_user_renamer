@@ -200,8 +200,8 @@ for f in master_file_path_list:
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -")
 log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder])
 if changes_dict:
-	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The Following Changes were detected: ")
-	log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): The Following Changes were detected:"])
+	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The Following File Changes were detected: ")
+	log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): The Following File Changes were detected:"])
 	for fn, line in changes_dict.items():
 		print("- SPUR(" + str(sys._getframe().f_lineno) +"): -FILENAME: " + fn )
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): -FILENAME: " + fn])
