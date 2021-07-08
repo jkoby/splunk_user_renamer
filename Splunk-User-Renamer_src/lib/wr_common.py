@@ -277,21 +277,23 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 							log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead."] )
 							log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): " + str(ex)] )
 							backup_to = False
+					if file_name.endswith('/') or file_name.endswith('\\'):
+						file_name = file_name[:-1]
+					os.makedirs(backup_to + os.path.dirname(file_name), exist_ok=True)
 					if not backup_to:
 						suffix_num = 1
-						if file_name.endswith('/') or file_name.endswith('\\'):
-							file_name = file_name[:-1]
 						suffix = '_rename_backup_' + str(suffix_num)
 						while os.path.exists(file_name + suffix):
-							suffix_num = suffix_num + 1
+							suffix_num += 1
 							suffix = '_rename_backup_' + str(suffix_num)
-						shutil.copytree(file_name, file_name + suffix)
+						shutil.copy(file_name, file_name + suffix)
 					else:
-						suffix_num = 1
+						suffix_num = 0
 						final_backup_path = backup_to + file_name
 						while os.path.exists(final_backup_path):
+							suffix_num += 1
 							final_backup_path = final_backup_path + '_rename_backup_' + str(suffix_num)
-						shutil.copytree(file_name, final_backup_path) # keeps dir structure
+						shutil.copy(file_name, final_backup_path) # keeps dir structure
 
 				# write out new file
 				print("- WRC(" + str(sys._getframe().f_lineno) + "): Writing out new file: " + file_name + " -")
@@ -300,9 +302,9 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 					for i in new_file_list:
 						for k, v in changes_log.items():
 							if str(i) == str(v):
-								final_changes_log[k]=[i]
+								final_changes_log[k]=(v)
 								break
-						f.write("%s\n" % i)
+						f.write("%s" % i)
 				f.close()
 				print("- WRC(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name + " -")
 				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name] )

@@ -38,4 +38,3 @@ python3 spur.py \
 # -fn = --file_names | List of file names to search in, separated by spaces. i.e: 'local.meta' 'test_file.conf'. User directories are handled by default, this is for file contents. 
 # -dm = --debug_modules | Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.
 # -tr = --test_run | If True, nothing will be modified, only reports what WOULD be modified. Logging is normal.
-

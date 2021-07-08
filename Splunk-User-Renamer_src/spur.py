@@ -214,8 +214,8 @@ if folder_changes_dict:
 	for k, v in folder_changes_dict.items():
 		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip())
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip()])
-		print("- SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Folder: " + str(v).strip())
-		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Folder: " + str(v).strip()])
+		print("- SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Folder: " + str(v))
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Folder: " + str(v)])
 
 if user_folder_failed_renames:
 	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders failed to backup: -" )
@@ -233,14 +233,13 @@ if file_changes_dict:
 		for k, v in line.items():
 			print("- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Line: " + str(k).strip())
 			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - Old Line: " + str(k).strip()])
-			print("- SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Line: " + str(v).strip())
-			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Line: " + str(v).strip()])
+			print("- SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Line: " + str(v))
+			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Line: " + str(v)])
 
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): --- Splunk User Renamer: Completed ---- ")
 print("- SPUR(" + str(sys._getframe().f_lineno) +"): --- Check wr_common (wrc) log for additional details. ---- \n")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): --- Splunk User Renamer: Completed ---- "])
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): --- Check wr_common (wrc) log for additional details. ----"])
-
 
 spur_op_timer.stop()
 sys.exit()
