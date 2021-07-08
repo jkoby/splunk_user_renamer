@@ -13,7 +13,7 @@ python3 spur.py \
     -csv_new_col 1 \
     -sph '/opt/splunk/' \
     -ll 3 \
-    -fn 'local.meta' \
+    -fn 'local.meta' 'authentication.conf' \
     -figl '/system/default/' \
     -figlt False \
     -dm True \
