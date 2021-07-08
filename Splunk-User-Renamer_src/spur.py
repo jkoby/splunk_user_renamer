@@ -6,7 +6,7 @@
 ##############################################################################################################
 
 ### Imports ###########################################
-import threading, sys, os, re, pandas
+import threading, sys, os, re, pandas, shutil
 
 from lib import wr_arguments as arguments
 from lib import wr_logging as log
@@ -153,7 +153,8 @@ for u in user_folders_list:
 					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Original: " + str(u) + " but email username: " + str(k) + " specified for replacement. Using non-email version."])
 					user_rename_dict[new_k] = user_rename_dict.pop(k)
 
-# start renaming user folders
+# RENAMES START NOW
+## start renaming user folders
 print("- SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders. -\n")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders.\n"])
 folder_changes_dict = {} # store all folder changes here: {k orig : v new}
@@ -162,12 +163,20 @@ for u in user_folders_list:
 		if str(u) == str(k):
 			if os.path.exists(splunk_user_folders_path + str(v)):
 				try:
-					print("- SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Deleting it first: " + splunk_user_folders_path + str(v))
-					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Deleting it first: " + splunk_user_folders_path + str(v)])
-					os.remove(splunk_user_folders_path + str(v))
+					print("- SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Backing it up and then deleting it first: " + splunk_user_folders_path + str(v))
+					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Backing it up and then deleting it first: " + splunk_user_folders_path + str(v)])
+					tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v)
+					counter = 0
+					while os.path.exists(tmp_backup_path):
+						counter += 1
+						tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v) + "_" + str(counter)
+					shutil.copytree(splunk_user_folders_path + str(v), tmp_backup_path)
+					os.rmdir(splunk_user_folders_path + str(v))
 				except Exception as ex:
-					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue deleting: " + splunk_user_folders_path + str(v))
-					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue deleting: " + splunk_user_folders_path + str(v)])
+					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v))
+					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex))
+					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v)])
+					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex)])
 					spur_op_timer.stop()
 					sys.exit()
 			if wrc.renameFolder(splunk_user_folders_path + str(k), splunk_user_folders_path + str(v), create_backup=True, backup_to=arguments.args.backup_folder, test_run=arguments.args.test_run):
@@ -180,14 +189,9 @@ for u in user_folders_list:
 				user_folder_failed_renames.append(splunk_user_folders_path + str(k))
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -\n")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder + "\n"])
-if user_folder_failed_renames:
-	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders failed to backup: -" )
-	for i in user_folder_failed_renames:
-		print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + i + " -" )
-		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + i])
 
-# start replacing usernames in files
-# pre-flight reporting
+## start replacing usernames in files
+## pre-flight reporting
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames. -")
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): The following files are being searched in for user renames."])
 file_changes_dict = {} # store all file changes here: file_name : {k orig : v new}
@@ -200,31 +204,41 @@ for f in master_file_path_list:
 	if tmp_changes_dict:
 		file_changes_dict[f] = tmp_changes_dict
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -")
-log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder])
+log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder])
+
+# final report
+## folders
+if folder_changes_dict:
+	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The Following FOLDER Changes were detected: ")
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): The Following FOLDER Changes were detected:"])
+	for k, v in folder_changes_dict.items():
+		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip())
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip()])
+		print("- SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Folder: " + str(v).strip())
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Folder: " + str(v).strip()])
+
+if user_folder_failed_renames:
+	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders failed to backup: -" )
+	for i in user_folder_failed_renames:
+		print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + i + " -" )
+		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + i])
+
+## files
 if file_changes_dict:
 	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The Following File Changes were detected: ")
-	log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): The Following File Changes were detected:"])
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): The Following File Changes were detected:"])
 	for fn, line in file_changes_dict.items():
 		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): -FILENAME: " + fn )
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): -FILENAME: " + fn])
 		for k, v in line.items():
 			print("- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Line: " + str(k).strip())
 			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - Old Line: " + str(k).strip()])
-			print("- SPUR(" + str(sys._getframe().f_lineno) +"): - New Line: " + str(v).strip())
-			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - New Line: " + str(v).strip()])
-
-if folder_changes_dict:
-	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The Following FOLDER Changes were detected: ")
-	log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): The Following FOLDER Changes were detected:"])
-	for k, v in folder_changes_dict.items():
-		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip())
-		log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): - Old Folder: " + str(k).strip()])
-		print("- SPUR(" + str(sys._getframe().f_lineno) +"): - New Folder: " + str(v).strip())
-		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - New Folder: " + str(v).strip()])
+			print("- SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Line: " + str(v).strip())
+			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): - TO  Line: " + str(v).strip()])
 
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): --- Splunk User Renamer: Completed ---- ")
 print("- SPUR(" + str(sys._getframe().f_lineno) +"): --- Check wr_common (wrc) log for additional details. ---- \n")
-log_file.writeLinesToFile(["\nSPUR(" + str(sys._getframe().f_lineno) +"): --- Splunk User Renamer: Completed ---- "])
+log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): --- Splunk User Renamer: Completed ---- "])
 log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): --- Check wr_common (wrc) log for additional details. ----"])
 
 

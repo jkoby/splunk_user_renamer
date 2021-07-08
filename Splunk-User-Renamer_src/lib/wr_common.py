@@ -264,11 +264,11 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 
 		if changes_log:
 			# create backup
-			if not test_run: # only write the new file if and crate a backup if NOT a test!
+			if not test_run: # only write the new file if and create a backup if NOT a test!
 				if create_backup:
 					if backup_to:
 						try:
-							backup_to = normalizePathOS(backup_to)[-1]
+							backup_to = normalizePathOS(backup_to)[:-1] # remove trailing slash
 							os.makedirs(str(backup_to), exist_ok=True)
 						except Exception as ex:
 							print("- WRC(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead. -")
@@ -279,7 +279,7 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 					if not backup_to:
 						suffix_num = 1
 						if file_name.endswith('/') or file_name.endswith('\\'):
-							file_name = file_name[-1]
+							file_name = file_name[:-1]
 						suffix = '_rename_backup_' + str(suffix_num)
 						while os.path.exists(file_name + suffix):
 							suffix_num = suffix_num + 1
@@ -360,7 +360,7 @@ def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=
 			if create_backup:
 				if backup_to:
 					try:
-						backup_to = normalizePathOS(backup_to)[-1]
+						backup_to = normalizePathOS(backup_to)[:-1]
 						os.makedirs(str(backup_to), exist_ok=True)
 					except Exception as ex:
 						print("- WRC(" + str(sys._getframe().f_lineno) + "): Specified backup dir couldn't be used: " + backup_to + ", backing up in same dir instead. -")
@@ -371,14 +371,19 @@ def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=
 				if not backup_to:
 					suffix_num = 1
 					if orig.endswith('/') or orig.endswith('\\'):
-						orig = orig[-1]
+						orig = orig[:-1]
 					suffix = '_rename_backup_' + str(suffix_num)
 					while os.path.exists(orig + suffix):
-						suffix_num = suffix_num + 1
+						suffix_num += 1
 						suffix = '_rename_backup_' + str(suffix_num)
 					shutil.copytree(orig, orig + suffix)
 				else:
-					shutil.copytree(orig, backup_to + orig) # keeps dir structure
+					suffix_num = 0
+					tmp_backup_to = backup_to + orig[:-1]
+					while os.path.exists(tmp_backup_to):
+						suffix_num += 1
+						tmp_backup_to = tmp_backup_to + "_" + str(suffix_num)
+					shutil.copytree(orig, tmp_backup_to) # keeps dir structure
 			os.rename(orig, new)
 		return(True)
 
@@ -388,4 +393,3 @@ def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Renaming " + orig + " FAILED. Are you using full paths?"] )
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): " + str(ex)] )
 		return(False)
-
