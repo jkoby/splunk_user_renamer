@@ -230,6 +230,7 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 	# backup the original file if requested
 	# then write out the file again with the replaced lines0
 	changes_log = {}
+	final_changes_log = {}
 	new_file_list = []
 	file_name = normalizePathOS(file_name)[:-1] #normalize path for OS redundancy check and remove trailing slash
 	try:
@@ -297,6 +298,10 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Writing out new file: " + file_name] )
 				with open(file_name, 'w') as f:
 					for i in new_file_list:
+						for k, v in changes_log.items():
+							if str(i) == str(v):
+								final_changes_log[k]=[i]
+								break
 						f.write("%s\n" % i)
 				f.close()
 				print("- WRC(" + str(sys._getframe().f_lineno) + "): Write successful of file: " + file_name + " -")
@@ -330,14 +335,14 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 			if verbose_prints:
 				print("- WRC(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n")
 			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n"])
-			return(changes_log)
+			return(final_changes_log)
 		
 	except Exception as ex:
 		print("- WRC(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check permissions? -")
 		print(ex)
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check permissions?"] )
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): " + str(ex)] )
-	return(changes_log)
+	return(final_changes_log)
 
 def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=False) -> bool:
 	'''
