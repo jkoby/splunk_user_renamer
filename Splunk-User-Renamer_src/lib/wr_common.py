@@ -207,7 +207,7 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 							continue
 					found_paths_list.append( file_full )
 					found_one = True
-					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + file_name + " in file."] )
+					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + file_name] )
 					continue
 				else:
 					continue
@@ -247,12 +247,15 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 						k = str(k).lower()
 						v = str(v).lower()
 						line = line.lower()
+#					print("TEST LINE: ", line)
+#					print("TEST K: ", k)
+#					print("TEST V: ", v)
 					if str(k) in line:
 						if verbose_prints:
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line.strip() + " -")
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replacing: " + k + " with " + v + " -\n")
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line.strip()], 3)
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing: " + k + " with " + v], 3)
+						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line.strip()])
+						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing: " + k + " with " + v])
 						new_line = line.replace(str(k),str(v)) # add replacement line to new_line var
 						changes_log[line]=new_line
 						break
@@ -324,7 +327,8 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 					print("- WRC(" + str(sys._getframe().f_lineno) + "):	" + str(i).strip() )
 				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  " + str(i).strip()], 3)
 		else:
-			print("- WRC(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n")
+			if verbose_prints:
+				print("- WRC(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n")
 			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n"])
 			return(changes_log)
 		
