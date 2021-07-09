@@ -216,7 +216,7 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 	else:
 		return(False, tuple())
 
-def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', additional_starts_with=(), additional_ends_with=(), case_senseitive=False, test_run=False, verbose_prints=True) -> dict:
+def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', additional_starts_with=[], additional_ends_with=[], case_senseitive=False, test_run=False, verbose_prints=True) -> dict:
 	'''
 	file_name should be full path to the file
 	This will read the file, make the changes and write the full file out

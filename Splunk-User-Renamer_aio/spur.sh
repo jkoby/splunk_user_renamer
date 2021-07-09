@@ -11,6 +11,8 @@
     -csv_h True \
     -csv_old_col 0 \
     -csv_new_col 1 \
+    -rsw '=' ' ' '-' ':' '[' \
+    -rew '=' ' ' '-' ':' ']' \
     -sph '/opt/splunk/' \
     -ll 3 \
     -fn 'local.meta' 'authentication.conf' \
@@ -27,6 +29,8 @@
 # -csv_h = --csv_header | True or False whether CSV contains header fields or not.
 # -csv_old_col = --csv_old_uname_col | Column number in CSV (left to right) old usernames are in. Default is 0 for FIRST column
 # -csv_new_col = --csv_new_uname_col | Column number in CSV (left to right) new usernames are in. Default is 1 for SECOND column
+# -rsw = --replace_starts_with | List of values the the original must have BEFORE the first char to be considered a match for replacement (N/A if match is the start of a string) (this helps avoid replacing substrings inside other strings that match the intended repalce) separated by spaces, i.e: '=' ':' ")
+# -rew = --replace_ends_with | List of values the the original must have AFTER the last char to be considered a match for replacement (this helps avoid replacing substrings inside other strings that match the intended repalce) separated by spaces, i.e: '=' ':' ")
 # -up = --uname_prefeix | If CSV is not being used, you may mass rename users to have this prefix. If CSV is specified, this is ignored.
 # -us = --uname_suffix | If CSV is not being used, you may mass rename users to have this suffix. If CSV is specified, this is ignored.
 # -sph = --splunk_home | Full path to Splunk's install dir.
