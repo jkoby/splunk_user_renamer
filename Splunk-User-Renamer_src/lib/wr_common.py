@@ -5,7 +5,7 @@
 ##############################################################################################################
 
 ### Imports ###########################################
-import time, sys, os, shutil
+import time, sys, os, shutil, re
 
 from . import wr_logging as log
 
@@ -216,11 +216,13 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 	else:
 		return(False, tuple())
 
-def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', case_senseitive=False, test_run=False, verbose_prints=True) -> dict:
+def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', additional_starts_with=(), additional_ends_with=(), case_senseitive=False, test_run=False, verbose_prints=True) -> dict:
 	'''
 	file_name should be full path to the file
 	This will read the file, make the changes and write the full file out
 	replace_dict should be in the format of 'replace_me':'replace_with'
+	additional_regex_check allows the user to specify a sub search after string is found in case further exclusion is needed
+	i.e. if replacing the username "unkd" with "1111" - unkd would also be found in "splunkd", so excluding this might be helpful
 	test_run = True will return the changes and print the new file but won't actually write it
 	Returns a dict with just the changes, orig_line:new_line
 	'''
@@ -243,23 +245,74 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 		with open(file_name) as f: # open file and read each line
 			for line in f:
 				new_line = line # set new_line to original line, if no replacement needed, we keep original line
+				replacement_occured_in_this_line = False
 				for k,v in replace_dict.items():
 					if not case_senseitive:
 						k = str(k).lower()
 						v = str(v).lower()
 						line = line.lower()
-#					print("TEST LINE: ", line)
-#					print("TEST K: ", k)
-#					print("TEST V: ", v)
 					if str(k) in line:
+						re_matches = re.finditer(str(k), line) # get as many matches in the line
+						match_loc = [] # list of match index tuples (start, fin) start is fisrt char in match end is first char AFTER last
+						for m in re_matches:
+							match_loc.append(m.span())
+						
+
+						# check if match is at start of line and ends with specific chars
+						# or in line but starts with specific chars and ends with specific chars
+						tuple_of_replacement_locations_list = []
+						for i_tuple in match_loc:
+							good_match = False
+							check_before_char = i_tuple[0] - 1
+							check_after_char = i_tuple[1]
+							if check_before_char <= 0: # is start of line?
+								if additional_ends_with:
+									for ew in additional_ends_with:
+										if check_after_char == ew:
+											good_match = True
+											tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+											break
+									if not good_match:
+										continue
+								else:
+									tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+							else:
+								if additional_starts_with:
+									starts_with_found = False
+									for sw in additional_starts_with:
+										if check_before_char == sw:
+											starts_with_found = True
+											break
+									if not starts_with_found:
+										continue
+									elif not additional_ends_with:
+										tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+										continue
+									else:
+										for ew in additional_ends_with:
+											if check_after_char == ew:
+												tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+												break
 						if verbose_prints:
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line.strip() + " -")
 							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replacing: " + k + " with " + v + " -\n")
 						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line.strip()])
 						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing: " + k + " with " + v])
-						new_line = line.replace(str(k),str(v)) # add replacement line to new_line var
-						changes_log[line]=new_line
-						break
+						ongoing_adjust_amount = 0
+						first_run = True
+						if tuple_of_replacement_locations_list:
+							replacement_occured_in_this_line = True
+						for replacement in tuple_of_replacement_locations_list:
+							adjust_amount = len(str(v)) - (replacement[1] - replacement[0])
+							if first_run:
+								first_run = False
+								new_line = new_line[replacement[0]] + str(v) + replacement[1:]
+							else:
+								new_line = new_line[replacement[0 + ongoing_adjust_amount]] + str(v) + replacement[1 + ongoing_adjust_amount:]
+							ongoing_adjust_amount += adjust_amount
+#						new_line = line.replace(str(k),str(v)) # add replacement line to new_line var
+				if replacement_occured_in_this_line:
+					changes_log[line]=new_line
 				new_file_list.append(new_line) # add line to ongoing list of file lines to write back later
 		f.close()
 

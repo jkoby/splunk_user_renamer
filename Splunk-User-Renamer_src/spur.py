@@ -200,7 +200,7 @@ for f in master_file_path_list:
 	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): 	- " + f])
 for f in master_file_path_list:
 	tmp_changes_dict = {}
-	tmp_changes_dict = wrc.replaceTextInFile(f, user_rename_dict, create_backup=True, backup_to=arguments.args.backup_folder, test_run=arguments.args.test_run, verbose_prints=True)
+	tmp_changes_dict = wrc.replaceTextInFile(f, user_rename_dict, create_backup=True, backup_to=arguments.args.backup_folder, additional_regex_check='(?:[ =:-])(unkd)(?:[ =:-])|^(unkd)(?:[ =:-])', test_run=arguments.args.test_run, verbose_prints=True)
 	if tmp_changes_dict:
 		file_changes_dict[f] = tmp_changes_dict
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -")
