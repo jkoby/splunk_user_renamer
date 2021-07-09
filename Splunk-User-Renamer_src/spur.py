@@ -203,8 +203,12 @@ for f in master_file_path_list:
 	tmp_changes_dict = wrc.replaceTextInFile(f, user_rename_dict, create_backup=True, backup_to=arguments.args.backup_folder, additional_starts_with=arguments.args.replace_starts_with, additional_ends_with=arguments.args.replace_ends_with, test_run=arguments.args.test_run, verbose_prints=True)
 	if tmp_changes_dict:
 		file_changes_dict[f] = tmp_changes_dict
-print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -")
-log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder])
+if not arguments.args.test_run:
+	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -")
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): All specified file modifications complete, successfuls will have a backup at: " + arguments.args.backup_folder])
+else:
+	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): TEST RUN COMPLETE - NO CHANGES WERE MADE - Scroll up or check logs for details of what would have changed -")
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): TEST RUN COMPLETE - NO CHANGES WERE MADE - Scroll up to see details on what would have changed"])
 
 # final report
 ## folders

@@ -11,7 +11,7 @@ from . import wr_logging as log
 
 ### LOGGING CLASS ###########################################
 log_file = log.LogFile('wrc.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
-
+log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): --- WRC: Start Of Run ---- \n"] )
 ### Classes ###########################################
 class timer:
 	'''
@@ -207,7 +207,7 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 							continue
 					found_paths_list.append( file_full )
 					found_one = True
-					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + file_name] )
+					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + file_full] )
 					continue
 				else:
 					continue
@@ -256,8 +256,6 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 						match_loc = [] # list of match index tuples (start, fin) start is fisrt char in match end is first char AFTER last
 						for m in re_matches:
 							match_loc.append(m.span())
-						
-
 						# check if match is at start of line and ends with specific chars
 						# or in line but starts with specific chars and ends with specific chars
 						tuple_of_replacement_locations_list = []
@@ -266,53 +264,59 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 							check_before_char = i_tuple[0] - 1
 							check_after_char = i_tuple[1]
 							if check_before_char <= 0: # is start of line?
+								if line[check_after_char] == '' or line[check_after_char] == '\n': # is it end of line?
+									good_match = True
+									tuple_of_replacement_locations_list.append( (i_tuple[0], i_tuple[1]) )
+									break
 								if additional_ends_with:
 									for ew in additional_ends_with:
-										if check_after_char == ew:
+										if line[check_after_char] == ew:
 											good_match = True
-											tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+											tuple_of_replacement_locations_list.append( (i_tuple[0], i_tuple[1]) )
 											break
 									if not good_match:
 										continue
 								else:
-									tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+									tuple_of_replacement_locations_list.append( (i_tuple[0], i_tuple[1]) )
 							else:
 								if additional_starts_with:
 									starts_with_found = False
 									for sw in additional_starts_with:
-										if check_before_char == sw:
+										if line[check_before_char] == sw:
 											starts_with_found = True
 											break
 									if not starts_with_found:
 										continue
 									elif not additional_ends_with:
-										tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+										tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1],)
 										continue
 									else:
+										if line[check_after_char] == '' or line[check_after_char] == '\n': # is it end of line?
+											tuple_of_replacement_locations_list.append( (i_tuple[0], i_tuple[1]) )
+											break
 										for ew in additional_ends_with:
-											if check_after_char == ew:
-												tuple_of_replacement_locations_list.append(i_tuple[0], i_tuple[1])
+											if line[check_after_char] == ew:
+												tuple_of_replacement_locations_list.append( (i_tuple[0], i_tuple[1]) )
 												break
-						if verbose_prints:
-							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line.strip() + " -")
-							print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replacing: " + k + " with " + v + " -\n")
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line.strip()])
-						log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing: " + k + " with " + v])
-						ongoing_adjust_amount = 0
-						first_run = True
 						if tuple_of_replacement_locations_list:
 							replacement_occured_in_this_line = True
+							if verbose_prints:
+								print("- WRC(" + str(sys._getframe().f_lineno) + "):	Found: " + k + " in " + line.strip() + " -")
+								print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replacing: " + k + " with " + v + " -\n")
+							log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Found: " + str(k) + " in " + line.strip()])
+							log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing: " + k + " with " + v])
+						ongoing_adjust_amount = 0
+						first_run = True
 						for replacement in tuple_of_replacement_locations_list:
 							adjust_amount = len(str(v)) - (replacement[1] - replacement[0])
 							if first_run:
 								first_run = False
-								new_line = new_line[replacement[0]] + str(v) + replacement[1:]
+								new_line = new_line[0:replacement[0]] + str(v) + new_line[replacement[1]:]
 							else:
-								new_line = new_line[replacement[0 + ongoing_adjust_amount]] + str(v) + replacement[1 + ongoing_adjust_amount:]
+								new_line = new_line[0:(replacement[0] + ongoing_adjust_amount) ] + str(v) + new_line[replacement[1] + ongoing_adjust_amount:]
 							ongoing_adjust_amount += adjust_amount
-#						new_line = line.replace(str(k),str(v)) # add replacement line to new_line var
 				if replacement_occured_in_this_line:
-					changes_log[line]=new_line
+					changes_log[line]=new_line.strip()
 				new_file_list.append(new_line) # add line to ongoing list of file lines to write back later
 		f.close()
 
@@ -371,21 +375,21 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 				if changes_log:
 					print("\n- WRC(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed: -")
 			if changes_log:
-				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed:"], 3)
-			for k, v in changes_log.items():
-				if verbose_prints:
-					print("- WRC(" + str(sys._getframe().f_lineno) + "):	Original line: " + str(k).strip() + " -")
-					print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replaced line: " + v + " -\n")
-				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Original line: " + k], 3)
-				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Replaced line: \n" + v], 3)
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The following lines "+ action + " changed:"])
+				for k, v in changes_log.items():
+					if verbose_prints:
+						print("- WRC(" + str(sys._getframe().f_lineno) + "):	Original line: " + str(k).strip() + " -")
+						print("- WRC(" + str(sys._getframe().f_lineno) + "):	Replaced line: " + v + " -\n")
+					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Original line: " + str(k).strip()])
+					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): 	Replaced line: " + str(v).strip()])
 
 			if verbose_prints:
 				print("- WRC(" + str(sys._getframe().f_lineno) + "): The new line(s) in the file in its entirety "+ action +": -")
-			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The new line(s) in the file in its entirety "+ action +": "], 3)
+			log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): The new line(s) in the file in its entirety "+ action +": "])
 			for i in new_file_list:
 				if verbose_prints:
 					print("- WRC(" + str(sys._getframe().f_lineno) + "):	" + str(i).strip() )
-				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  " + str(i).strip()], 3)
+				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  " + str(i).strip()])
 		else:
 			if verbose_prints:
 				print("- WRC(" + str(sys._getframe().f_lineno) + "): No changes found in file. Nothing done\n")
