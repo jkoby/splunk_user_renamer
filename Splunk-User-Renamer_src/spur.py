@@ -163,23 +163,27 @@ for u in user_folders_list:
 	for k, v in user_rename_dict.items():
 		if str(u) == str(k):
 			if os.path.exists(splunk_user_folders_path + str(v)):
-				try:
-					print("- SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Backing it up and then deleting it first: " + splunk_user_folders_path + str(v))
-					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Backing it up and then deleting it first: " + splunk_user_folders_path + str(v)])
-					tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v)
-					counter = 0
-					while os.path.exists(tmp_backup_path):
-						counter += 1
-						tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v) + "_" + str(counter)
-					shutil.copytree(splunk_user_folders_path + str(v), tmp_backup_path)
-					shutil.rmtree(splunk_user_folders_path + str(v))
-				except Exception as ex:
-					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v))
-					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex))
-					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v)])
-					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex)])
-					spur_op_timer.stop()
-					sys.exit()
+				if arguments.args.test_run:
+					print("- SPUR(" + str(sys._getframe().f_lineno) +"): TEST MODE - New User Folder Already exists! Script would back it up and then delete it: " + splunk_user_folders_path + str(v))
+					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): TEST MODE - New User Folder Already exists! Script would back it up and then delete it: " + splunk_user_folders_path + str(v)])
+				else:
+					try:
+						print("- SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Backing it up and then deleting it first: " + splunk_user_folders_path + str(v))
+						log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): New User Folder Already exists! Backing it up and then deleting it first: " + splunk_user_folders_path + str(v)])
+						tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v)
+						counter = 0
+						while os.path.exists(tmp_backup_path):
+							counter += 1
+							tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v) + "_" + str(counter)
+						shutil.copytree(splunk_user_folders_path + str(v), tmp_backup_path)
+						shutil.rmtree(splunk_user_folders_path + str(v))
+					except Exception as ex:
+						print("- SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v))
+						print("- SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex))
+						log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v)])
+						log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex)])
+						spur_op_timer.stop()
+						sys.exit()
 			if wrc.renameFolder(splunk_user_folders_path + str(k), splunk_user_folders_path + str(v), create_backup=True, backup_to=arguments.args.backup_folder, test_run=arguments.args.test_run):
 				print("- SPUR(" + str(sys._getframe().f_lineno) +"): Original: " + splunk_user_folders_path + str(k))
 				print("- SPUR(" + str(sys._getframe().f_lineno) +"): Renamed To: " + splunk_user_folders_path + str(v))
