@@ -107,6 +107,7 @@ else:
 			df = df[[int(arguments.args.csv_old_uname_col),int(arguments.args.csv_new_uname_col)]] # we only want the two columns we care about (old and new unames)
 			csv_df_list.append(df)
 		df_full = pandas.concat(csv_df_list, axis=0, ignore_index=True)
+		df_full = df_full.applymap(str.strip) # remove starting and trailing whitespaces from df strings
 		user_rename_dict = df_full.set_index(arguments.args.csv_old_uname_col)[int(arguments.args.csv_new_uname_col)].to_dict()
 		print("- SPUR(" + str(sys._getframe().f_lineno) +"): Done. -")
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Done."])		
@@ -171,7 +172,7 @@ for u in user_folders_list:
 						counter += 1
 						tmp_backup_path = wrc.normalizePathOS(arguments.args.backup_folder)[:-1] + splunk_user_folders_path + str(v) + "_" + str(counter)
 					shutil.copytree(splunk_user_folders_path + str(v), tmp_backup_path)
-					os.rmdir(splunk_user_folders_path + str(v))
+					shutil.rmtree(splunk_user_folders_path + str(v))
 				except Exception as ex:
 					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Exiting, as had issue backing up or deleting: " + splunk_user_folders_path + str(v))
 					print("- SPUR(" + str(sys._getframe().f_lineno) +"): Issue: " + str(ex))
