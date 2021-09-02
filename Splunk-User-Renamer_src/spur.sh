@@ -15,7 +15,7 @@ python3 spur.py \
     -rew '=' ' ' '-' ':' ']' \
     -sph '/opt/splunk/' \
     -ll 3 \
-    -fn 'local.meta' 'authentication.conf' \
+    -fn 'default.meta' 'local.meta' 'authentication.conf' \
     -figl '/system/default/' \
     -figlt False \
     -dm True \
