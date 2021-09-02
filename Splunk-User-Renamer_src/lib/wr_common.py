@@ -397,10 +397,11 @@ def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, bac
 			return(final_changes_log)
 		
 	except Exception as ex:
-		print("- WRC(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check permissions? -")
+		print("- WRC(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check file exists or permissions? -")
 		print(ex)
-		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check permissions?"] )
+		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Replacing items in file failed for: " + file_name + ", check file exists or permissions?"] )
 		log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): " + str(ex)] )
+		return("FAILED")
 	return(final_changes_log)
 
 def renameFolder(orig:str, new:str, create_backup=False, backup_to='', test_run=False) -> bool:
