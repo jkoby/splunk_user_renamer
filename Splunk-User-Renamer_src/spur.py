@@ -57,8 +57,8 @@ if arguments.args.test_run:
 ###########################################
 def generateMasterFolderSearchList():
 	# FOLDERS
-	print("- SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FOLDER list. These folders get backed up and renamed before any file contents is edited. -")
-	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FOLDER list. These folders get backed up and renamed before any file contents is edited."])
+	print("- SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FOLDER list. These folders get backed up and renamed before any file contents are edited. -")
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FOLDER list. These folders get backed up and renamed before any file contents are edited."])
 	user_folders_list = next(os.walk(splunk_user_folders_path))[1] # main - used later
 	if not user_folders_list:
 		print("- SPUR(" + str(sys._getframe().f_lineno) +"): No user folders found to rename. -")
