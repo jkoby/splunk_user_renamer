@@ -208,6 +208,7 @@ def renameUserFolders():
 	print("- SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders. -\n")
 	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders.\n"])
 	folder_changes_dict = {} # store all folder changes here: {k orig : v new}
+	user_folder_failed_renames = []
 	for u in user_folders_list:
 		for k, v in user_rename_dict.items():
 			if str(u) == str(k):
@@ -312,7 +313,7 @@ if master_file_path_list:
 	file_changes_dict, file_failed_renames = renameUsersInFiles()
 
 ## final report
-finalReport(folder_changes_dict, user_folder_failed_renames, file_changes_dict)
+finalReport(folder_changes_dict, user_folder_failed_renames, file_changes_dict, file_failed_renames)
 
 
 # outro
