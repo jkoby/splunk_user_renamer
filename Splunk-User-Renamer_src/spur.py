@@ -69,8 +69,8 @@ def generateMasterFileSearchList():
 	# FILES
 	print("- SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FILE list. This is done AFTER user folders have been backed up and renamed. -")
 	print("- SPUR(" + str(sys._getframe().f_lineno) +"): This means usernames in the PATH to these files will be new, but the content is still previous usernames. -")
-	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FILE list. This is done AFTER user folders have been backed up and renamed."])
-	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): This means usernames in the PATH to these files will be new, but the content is still previous usernames."])
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Generating master search FILE list. This is done AFTER USER FOLDERS have been backed up and renamed, which...."])
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):  ...usernames in the PATH to files in USER FOLDERS will be new, but the CONTENT still has previous usernames, which is ok."])
 	## full paths to the file names found
 	master_file_list = arguments.args.file_names #  file names to look in for username matches to replace. Specified by user in args-> used to get full file paths
 	master_file_path_list = []
