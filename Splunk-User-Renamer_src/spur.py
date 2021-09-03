@@ -139,13 +139,6 @@ def determineCSV():
 			spur_op_timer.stop()
 			sys.exit()
 
-def startupChecks():
-	if not user_folders_list:
-		print("- SPUR(" + str(sys._getframe().f_lineno) +"): No user folders found to rename. Exiting. -")
-		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): No user folders found to rename. Exiting."])
-		spur_op_timer.stop()
-		sys.exit()
-
 def emailForUsernameCheck():
 	# do a quick check to make sure the user didnt provide emaill addresses instead of usernames when users aren't email addresses or vice versa
 	email_regex = '^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]{2,}$' # used to check if usernames in csv match usernames in splunk when one may be email address and one may not be
