@@ -202,9 +202,12 @@ def renameUserFolders():
 	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Starting rename of user folders.\n"])
 	folder_changes_dict = {} # store all folder changes here: {k orig : v new}
 	user_folder_failed_renames = []
+	user_folders_not_in_list = []
 	for u in user_folders_list:
+		found = False
 		for k, v in user_rename_dict.items():
 			if str(u) == str(k):
+				found = True
 				if os.path.exists(splunk_user_folders_path + str(v)):
 					if arguments.args.test_run:
 						print("- SPUR(" + str(sys._getframe().f_lineno) +"): TEST MODE - New User Folder Already exists! Script would back it up and then delete it: " + splunk_user_folders_path + str(v))
@@ -233,13 +236,18 @@ def renameUserFolders():
 					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Original: " + splunk_user_folders_path + str(k)])
 					log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Renamed To: " + splunk_user_folders_path + str(v)])
 					folder_changes_dict[splunk_user_folders_path + str(k)] = splunk_user_folders_path + str(v)
+					break
 				else:
 					user_folder_failed_renames.append(splunk_user_folders_path + str(k))
+					break
+		if not found:
+			user_folders_not_in_list.append(str(u))
+		
 	print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder + " -\n")
 	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): Rename complete, successfuls will have a backup at: " + arguments.args.backup_folder + "\n"])
-	return(folder_changes_dict, user_folder_failed_renames)
+	return(folder_changes_dict, user_folder_failed_renames, user_folders_not_in_list)
 
-def finalReport(folder_changes_dict, user_folder_failed_renames, file_changes_dict, file_failed_renames):
+def finalReport(folder_changes_dict, user_folder_failed_renames, user_folders_not_in_list, file_changes_dict, file_failed_renames):
 	# final report
 	## folders
 	if folder_changes_dict:
@@ -256,6 +264,12 @@ def finalReport(folder_changes_dict, user_folder_failed_renames, file_changes_di
 		for i in user_folder_failed_renames:
 			print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + i + " -" )
 			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + i])
+	
+	if user_folders_not_in_list:
+		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders were found but not in CSV so not touched: -" )
+		for uf in user_folder_failed_renames:
+			print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + str(uf) + " -" )
+			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + str(uf)])
 
 	## files
 	if file_changes_dict:
@@ -299,15 +313,14 @@ emailForUsernameCheck()
 # RENAMES START NOW
 ## start renaming user folders
 if user_folders_list:
-	folder_changes_dict, user_folder_failed_renames = renameUserFolders()
+	folder_changes_dict, user_folder_failed_renames, user_folders_not_in_list = renameUserFolders()
 
 ## start replacing usernames in files
 if master_file_path_list:
 	file_changes_dict, file_failed_renames = renameUsersInFiles()
 
 ## final report
-finalReport(folder_changes_dict, user_folder_failed_renames, file_changes_dict, file_failed_renames)
-
+finalReport(folder_changes_dict, user_folder_failed_renames, user_folders_not_in_list, file_changes_dict, file_failed_renames)
 
 # outro
 print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): --- Splunk User Renamer: Completed ---- ")
