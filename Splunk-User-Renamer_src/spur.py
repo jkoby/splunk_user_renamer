@@ -269,7 +269,7 @@ def finalReport(folder_changes_dict, user_folder_failed_renames, user_folders_no
 	if user_folders_not_in_list:
 		print("\n- SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders were found but not in CSV so not touched: -" )
 		log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): The following user folders were found but not in CSV so not touched:"])
-		for uf in user_folder_failed_renames:
+		for uf in user_folders_not_in_list:
 			print("- SPUR(" + str(sys._getframe().f_lineno) +"):	" + str(uf) + " -" )
 			log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"):		" + str(uf)])
 
