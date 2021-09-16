@@ -300,12 +300,6 @@ def finalReport(folder_changes_dict, user_folder_failed_renames, user_folders_no
 ###########################################
 determineCSV()
 user_folders_list = generateMasterFolderSearchList()
-master_file_path_list = generateMasterFileSearchList()
-if not master_file_path_list and not user_folders_list:
-	print("- SPUR(" + str(sys._getframe().f_lineno) +"): No file names found to search in for users or folders to be renamed. Exiting. -")
-	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): No file names found to search in for users or folders to be renamed. Exiting."])
-	spur_op_timer.stop()
-	sys.exit()
 
 #email usernames check
 emailForUsernameCheck()
@@ -316,6 +310,13 @@ if user_folders_list:
 	folder_changes_dict, user_folder_failed_renames, user_folders_not_in_list = renameUserFolders()
 
 ## start replacing usernames in files
+master_file_path_list = generateMasterFileSearchList()
+if not master_file_path_list and not user_folders_list:
+	print("- SPUR(" + str(sys._getframe().f_lineno) +"): No file names found to search in for users or folders to be renamed. Exiting. -")
+	log_file.writeLinesToFile(["SPUR(" + str(sys._getframe().f_lineno) +"): No file names found to search in for users or folders to be renamed. Exiting."])
+	spur_op_timer.stop()
+	sys.exit()
+
 if master_file_path_list:
 	file_changes_dict, file_failed_renames = renameUsersInFiles()
 
