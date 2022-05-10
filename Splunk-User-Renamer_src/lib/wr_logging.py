@@ -21,19 +21,16 @@ def normalizePathOS(path:str) -> str:
 	if 'win' in sys.platform:
 		path.replace('/', '\\')
 		if not path.endswith('\\'):
-			path = path + '\\'
+			path += '\\'
 	else:
 		path.replace('\\', '/')
 		if not path.endswith('/'):
-			path = path + '/'
+			path += '/'
 	path.replace('//','/').replace('\\\\','\\')
 	return(path)
 
 def verifyLogFileExist(log_file):
-	if os.path.exists(log_file):
-		return(True)
-	else:
-		return(False)
+	return bool(os.path.exists(log_file))
 
 # after 50mb create a new log file and append number at the end
 def checkFileSize(log_file: str, roll_size_bytes=100000000, max_files_to_keep=0, debug=False) -> bool:
@@ -41,25 +38,26 @@ def checkFileSize(log_file: str, roll_size_bytes=100000000, max_files_to_keep=0,
 	Checks if current log is greater than bytes and creates a new by appending number to end
 	Will delete any logs greater than max_files_to_keep unless 0 which is keep all
 	'''
-	if os.path.exists(log_file):
-		if os.path.getsize(log_file) >= roll_size_bytes:
-			counter = 0
-			if debug:
-				print("- WRLog(" + str(sys._getframe().f_lineno) + "): File to be rotated / removed: {}".format(log_file))
-			while os.path.exists((log_file) + "_" + str(counter)):
-				counter = (counter) + 1
-			else:
-				os.rename( (log_file), (log_file) + "_" + str(counter) )
-			if not max_files_to_keep == 0: # check if file need deletion after each new made
-				log_dir = Path(log_file).parent
+	if not os.path.exists(log_file):
+		return
+	if os.path.getsize(log_file) >= roll_size_bytes:
+		counter = 0
+		if debug:
+			print(f"- WRLog({str(sys._getframe().f_lineno)}" +
+			      f"): File to be rotated / removed: {log_file}")
+		while os.path.exists(f"{log_file}_{counter}"):
+			counter += 1
+		os.rename(log_file, f"{log_file}_{counter}")
+		if max_files_to_keep != 0: # check if file need deletion after each new made
+			log_dir = Path(log_file).parent
+			path, dirs, files = next(os.walk(log_dir))
+			num_logs = len(files)
+			while num_logs > max_files_to_keep: # remove oldest log files until at specified keep amount
 				path, dirs, files = next(os.walk(log_dir))
 				num_logs = len(files)
-				while num_logs > max_files_to_keep: # remove oldest log files until at specified keep amount
-					path, dirs, files = next(os.walk(log_dir))
-					num_logs = len(files)
-					for file in files:
-						oldest_file = min(log_dir + '/' + file, key=os.path.getctime)
-						os.remove(oldest_file)
+				for file in files:
+					oldest_file = min(log_dir + '/' + file, key=os.path.getctime)
+					os.remove(oldest_file)
 
 def isLogFileOld(file, log_retention_days):
 	""" Determines if a log file is dictated to be 'old' - (I.e. if the log file is older then the retention period)
@@ -68,10 +66,7 @@ def isLogFileOld(file, log_retention_days):
 	#Age Format: YYYY-MM-DD HR:HH
 	current_fileage = (time.strftime('%Y-%m-%d %H', time.gmtime(os.path.getmtime(file))))
 	purge_age = (datetime.datetime.now() - datetime.timedelta(days=(log_retention_days))).strftime("%Y-%m-%d %H")
-	if (current_fileage) < (purge_age):
-		return True
-	else:
-		return False
+	return current_fileage < purge_age
 
 def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retention_days:int):
 	"""
@@ -81,29 +76,39 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 	# fetch list of every file in (log_folder)
 	all_files_list = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser( (log_folder) )) for f in fn]
 	if all_files_list:
-		print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : Log files Found: -")
+		print(
+		    f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : Log files Found: -"
+		)
 		for f in all_files_list:
-			if str(log_file) in f:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " + f + " -") 
+			if log_file in f:
+				print(f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : " + f + " -")
 	if not os.path.exists(log_folder):
-		print("-" + (log_folder)+" does not exist or couldn't be accessed, will attempt to create -")
+		print(f"-{log_folder}" +
+		      " does not exist or couldn't be accessed, will attempt to create -")
 	if not all_files_list:
-		print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : No old logs found for removal in " + class_name + " -")
+		print(
+		    f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : No old logs found for removal in {class_name} -"
+		)
 		return
-	print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : Removing old log files -")
+	print(
+	    f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : Removing old log files -"
+	)
 	for f in all_files_list:
 		any_old_found = False
-		if str(log_file) in f:
-			if isLogFileOld(f, log_retention_days) or log_retention_days == 0:
-				any_old_found = True
-				try:
-					os.remove(f)
-					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " + (f) + " deleted -")
-				except:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " +  (f) + " could not be deleted, permissions? -")
-		if not any_old_found:
-			if str(log_file) in f:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : No (more) logs older than " + str(log_retention_days) + " days found. -")
+		if log_file in f and (isLogFileOld(f, log_retention_days)
+		                      or log_retention_days == 0):
+			any_old_found = True
+			try:
+				os.remove(f)
+				print(f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : " + f +
+				      " deleted -")
+			except:
+				print(f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : " + f +
+				      " could not be deleted, permissions? -")
+		if not any_old_found and log_file in f:
+			print(
+			    f"- WRLog({str(sys._getframe().f_lineno)}) ({class_name}) : No (more) logs older than {log_retention_days} days found. -"
+			)
 
 ### CLASSES ###########################################
 
@@ -120,20 +125,19 @@ class LogFile():
 		# if user specified own extension, dont add .log
 		root, ext = os.path.splitext(self.name)
 		if ext:
-			if prefix_date:
-				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name)
-			else:
-				self.log_file = "_" + (self.name)
+			self.log_file = (datetime.datetime.now().strftime("%Y_%m_%d") + "_" +
+			                 (self.name) if prefix_date else f"_{self.name}")
+		elif prefix_date:
+			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".log"
 		else:
-			if prefix_date:
-				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".log"
-			else:
-				self.log_file = "_" + (self.name) + ".log"
+			self.log_file = f"_{self.name}.log"
 		if not os.path.exists(self.log_folder):
 			try:
 				os.makedirs( (self.log_folder), exist_ok=True)
 			except:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : " + (self.log_folder) + ' - could not be accessed or created. Check permissions?')
+				print(f"- WRLog({str(sys._getframe().f_lineno)}) ({self.name}) : " +
+				      self.log_folder +
+				      ' - could not be accessed or created. Check permissions?')
 		if remove_old_logs:
 			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		self.log_path = (self.log_folder) + '/' + (self.log_file).replace('//','/').replace('\\\\','\\')
@@ -141,8 +145,7 @@ class LogFile():
 	def writeLinesToFile(self, lines: list, level=1, include_break=True):
 		retry = 4
 		while retry > 0:
-			if not self.log_level == 1 or not self.log_level == 2 or not self.log_level == 3:
-				self.log_level = 1
+			self.log_level = 1
 			if level <= self.log_level or level == 9:
 				try:
 					with open( (self.log_path),'a+' ) as file:
@@ -150,21 +153,24 @@ class LogFile():
 							time_stamp = datetime.datetime.now().strftime("%Y_%m_%d_T%H_%M_%S.%f")
 							prefix = time_stamp + ' - LOG-LVL_' + str(level) + ' - '
 							if include_break:
-								file.write("%s" % (prefix) + line + "\n")
+								file.write(f"{prefix}" + line + "\n")
 							else:
-								file.write("%s" % (prefix) + line)
+								file.write(f"{prefix}" + line)
 					file.close
 					retry = 0
 					checkFileSize(self.log_path, self.roll_size_bytes, self.max_files_to_keep, self.debug)
 				except Exception as ex:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
+					print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.name +
+					      ") : Exception: -")
 					print(ex)
 					if retry > 0:
 						print("Retrying write: " + (retry))
 						time.sleep(0.1)
 						retry -= 1
 					else:
-						print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Could not write to log file, check permissions of " + (self.log_folder) + " -")
+						print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.name +
+						      ") : Could not write to log file, check permissions of " +
+						      self.log_folder + " -")
 			else:
 				retry = 0
 
@@ -182,15 +188,12 @@ class CSVFile():
 		# if user specified own extension, dont add .log
 		root, ext = os.path.splitext(self.name)
 		if ext:
-			if prefix_date:
-				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name)
-			else:
-				self.log_file = (self.name)
+			self.log_file = (datetime.datetime.now().strftime("%Y_%m_%d") + "_" +
+			                 (self.name) if prefix_date else self.name)
+		elif prefix_date:
+			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".csv"
 		else:
-			if prefix_date:
-				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".csv"
-			else:
-				self.log_file = (self.name) + ".csv"
+			self.log_file = f"{self.name}.csv"
 		if remove_old_logs:
 			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		if not os.path.exists(self.log_folder):
@@ -213,16 +216,15 @@ class CSVFile():
 				with open( (self.log_path), 'a+') as csv_file:
 					writer = csv.writer(csv_file)
 					for row in csv_rows:
-						if header_row and header_written == False:
-							# write header row
-							if write_header:
-								writer.writerow(header_row)
-								header_written = True
+						if header_row and header_written == False and write_header:
+							writer.writerow(header_row)
+							header_written = True
 						writer.writerow(row)
 				csv_file.close
 				retry = 0
 			except Exception as ex:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
+				print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.name +
+				      ") : Exception: -")
 				print(ex)
 				if retry > 0:
 					print("Retrying write: " + (retry))
@@ -243,8 +245,11 @@ class CSVFile():
 			try:
 				df = pandas.read_csv(self.log_path)
 				for i in parameter_list:
-					if not len(i) == 4:
-						print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - updateCellsByHeader takes strictly 4 parameters more or less given. Skipping: " + str(i) +" -")
+					if len(i) != 4:
+						print(
+						    f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.name +
+						    "): - updateCellsByHeader takes strictly 4 parameters more or less given. Skipping: "
+						    + str(i) + " -")
 						continue
 					header_to_search_under = str(i[0])
 					value_to_search = str(i[1])
@@ -258,7 +263,8 @@ class CSVFile():
 			except:
 				return(False)
 		else:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
+			print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.name +
+			      "): - Could not read csv specified. -")
 			return(False)
 
 	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search:str, second_header_to_search_under:str) -> list:
@@ -275,7 +281,8 @@ class CSVFile():
 			except:
 				return(False, "")
 		else:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
+			print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.log_path +
+			      "): - Could not read csv specified. -")
 			return(False, False)
 
 	def valueExistsInColumn(self, first_header_to_search_under:str, value_under_first_header_to_search:str) -> list:
@@ -290,7 +297,8 @@ class CSVFile():
 			except:
 				return(False, [])
 		else:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
+			print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.log_path +
+			      "): - Could not read csv specified. -")
 			return(False, False)
 
 	def readAllRowsToList(self, remove_rows_header_equals_value_pairs=[]) -> list:
@@ -304,11 +312,13 @@ class CSVFile():
 				df = df.iloc[1:]
 				return(df.values.tolist())
 			except Exception as ex:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Read from CSV failed -")
+				print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.log_path +
+				      "): - Read from CSV failed -")
 				print(ex)
 				return([])
 		else:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
+			print(f"- WRLog({str(sys._getframe().f_lineno)}) (" + self.log_path +
+			      "): - Could not read csv specified. -")
 			return(False, False)
 	
 	def doesLogFileExist(self):

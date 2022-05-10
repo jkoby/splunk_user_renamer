@@ -11,7 +11,8 @@ from . import wr_logging as log
 
 ### LOGGING CLASS ###########################################
 log_file = log.LogFile('wrc.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
-log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): --- WRC: Start Of Run ---- \n"] )
+log_file.writeLinesToFile(
+    [f"({str(sys._getframe().f_lineno)}" + "): --- WRC: Start Of Run ---- \n"])
 ### Classes ###########################################
 class timer:
 	'''
@@ -44,19 +45,16 @@ class timer:
 				time.sleep(1)
 				self.current_time_sec += 1
 				cur_print = round(self.current_time_sec / 60, 2)
-				if not self.max_time_sec == 0:
-					if self.print_outs:
-						if self.current_time_sec % self.print_interval == 0:
-							print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " / " + str( round(self.max_time_sec / 60, 2) ) + " -" )
+				if self.max_time_sec != 0:
+					if self.print_outs and self.current_time_sec % self.print_interval == 0:
+						print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " / " + str( round(self.max_time_sec / 60, 2) ) + " -" )
 					if self.current_time_sec >= self.max_time_sec:
 						print("\n- WRC Timer: "+ self.name + " - Maxt time reached, stopping timer. -")
 						self.max_time_reached = True
 						self.stop()
 						break
-				else:
-					if self.print_outs:
-						if self.current_time_sec % self.print_interval == 0:
-							print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " -")
+				elif self.print_outs and self.current_time_sec % self.print_interval == 0:
+					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " -")
 
 	def stop(self):
 		if not self.started:
@@ -77,15 +75,12 @@ class timer:
 		m = minutes
 		h = hours
 		'''
-		if unit == 's':
-			ret_time = self.current_time_sec
+		if unit == 'h':
+			return round(self.current_time_sec / 3600, 2)
 		elif unit == 'm':
-			ret_time = round(self.current_time_sec / 60, 2)
-		elif unit == 'h':
-			ret_time = round(self.current_time_sec / 3600, 2)
+			return round(self.current_time_sec / 60, 2)
 		else:
-			ret_time =self.current_time_sec
-		return(ret_time)
+			return self.current_time_sec
 
 ### FUNCTIONS ###########################################
 
@@ -106,11 +101,11 @@ def normalizePathOS(path:str) -> str:
 	if 'win' in sys.platform:
 		path.replace('/', '\\')
 		if not path.endswith('\\'):
-			path = path + '\\'
+			path += '\\'
 	else:
 		path.replace('\\', '/')
 		if not path.endswith('/'):
-			path = path + '/'
+			path += '/'
 	path.replace('//','/').replace('\\\\','\\')
 	return(path)
 
@@ -123,27 +118,18 @@ def isInList(string_to_test:str, list_to_check_against:list, equals_or_contains=
 	'''
 	for item in list_to_check_against:
 		if equals_or_contains:
-			if string_in_list_or_items_in_list_in_string:
-				if string_to_test == item:
-					return(True)
-				else:
-					continue
-			else:
-				if item == string_to_test:
-					return(True)
-				else:
-					continue
-		else:
-			if string_in_list_or_items_in_list_in_string:
-				if string_to_test in item:
-					return(True)
-				else:
-					continue
-			else:
-				if item in string_to_test:
-					return(True)
-				else:
-					continue					
+			if (string_in_list_or_items_in_list_in_string and string_to_test == item
+			    or not string_in_list_or_items_in_list_in_string
+			    and item == string_to_test):
+				return(True)
+			elif string_in_list_or_items_in_list_in_string:
+				continue
+		elif (string_in_list_or_items_in_list_in_string and string_to_test in item
+		      or not string_in_list_or_items_in_list_in_string
+		      and item in string_to_test):
+			return(True)
+		elif string_in_list_or_items_in_list_in_string:
+			continue
 	return(False)
 
 # find and return a specific line in a file by contains or exact
@@ -165,22 +151,22 @@ def findLineInFile(string_to_find:list, file_path:str, equals_or_contains=False,
 			if use_header and not header_found:
 				if first_run:
 					print("\n- WRC: Looking for: " + header + " in file. -")
-					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Looking for: " + header + " in file."] )
+					log_file.writeLinesToFile([
+					    f"({str(sys._getframe().f_lineno)}):  Looking for: {header} in file."
+					])
 					first_run = False
 				if header in line:
 					header_found = True
 				continue
 			for string in string_to_find:
-				found = "- WRC(" + str(sys._getframe().f_lineno) + "): Found: " + string + " in file. -\n"
-				log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + string + " in file."] )
-				if equals_or_contains:
-					if string == line:
-						print(found)
-						return(True, line)
-				else:
-					if string in line:
-						print(found)
-						return(True, line)
+				found = (f"- WRC({str(sys._getframe().f_lineno)}): Found: {string}" +
+				         " in file. -\n")
+				log_file.writeLinesToFile(
+				    [f"({str(sys._getframe().f_lineno)}):  Found: {string} in file."])
+				if (equals_or_contains and string == line
+				    or not equals_or_contains and string in line):
+					print(found)
+					return(True, line)
 		return(False, "")
 
 # find a list of occurances of a file by name
@@ -199,22 +185,26 @@ def findFileByName(file_name:str, search_in: tuple, file_search_list=[], file_se
 			for file in files:
 				if file == file_name:
 					file_full = os.path.join(root, file)
-					if file_search_list:
-						if not isInList(file_full, file_search_list, equals_or_contains=file_search_list_type, string_in_list_or_items_in_list_in_string=False):
-							continue
-					if file_ignore_list:
-						if isInList(file_full, file_ignore_list, equals_or_contains=file_ignore_list_type, string_in_list_or_items_in_list_in_string=False):
-							continue
+					if file_search_list and not isInList(
+					    file_full,
+					    file_search_list,
+					    equals_or_contains=file_search_list_type,
+					    string_in_list_or_items_in_list_in_string=False,
+					):
+						continue
+					if file_ignore_list and isInList(
+					    file_full,
+					    file_ignore_list,
+					    equals_or_contains=file_ignore_list_type,
+					    string_in_list_or_items_in_list_in_string=False,
+					):
+						continue
 					found_paths_list.append( file_full )
 					found_one = True
-					log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Found: " + file_full] )
-					continue
-				else:
-					continue
-	if found_one:
-		return(True, tuple(found_paths_list))
-	else:
-		return(False, tuple())
+					log_file.writeLinesToFile(
+					    [f"({str(sys._getframe().f_lineno)}):  Found: {file_full}"])
+				continue
+	return (True, tuple(found_paths_list)) if found_one else (False, tuple())
 
 def replaceTextInFile(file_name:str, replace_dict:dict, create_backup=False, backup_to='', additional_starts_with=[], additional_ends_with=[], case_senseitive=False, test_run=False, verbose_prints=True) -> dict:
 	'''

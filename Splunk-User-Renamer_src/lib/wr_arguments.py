@@ -22,9 +22,9 @@ def str2bool(string: str) -> bool:
 	#Define common 'string values' for bool args to accept 'Yes' as well as 'True'
 	if isinstance(string, bool):
 		return(string)
-	if string.lower() in ('yes', 'true', 't', 'y', '1'):
+	if string.lower() in {'yes', 'true', 't', 'y', '1'}:
 		return(True)
-	elif string.lower() in ('no', 'false', 'f', 'n', '0'):
+	elif string.lower() in {'no', 'false', 'f', 'n', '0'}:
 		return(False)
 	else:
 		raise argparse.ArgumentTypeError('Boolean value expected. True / False.')
@@ -32,7 +32,7 @@ def str2bool(string: str) -> bool:
 def checkPositive(value: str) -> int:
 	ivalue = int(value)
 	if ivalue < 0:
-		raise argparse.ArgumentTypeError('%s is an invalid (below 0) int value' % value)
+		raise argparse.ArgumentTypeError(f'{value} is an invalid (below 0) int value')
 	return ivalue
 
 def Arguments():
